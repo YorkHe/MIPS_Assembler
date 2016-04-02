@@ -1,0 +1,17 @@
+{
+  "name": "mips-assembler",
+  "version": "0.1.0",
+  "main": "index.js",
+  "dependencies": {
+    "ace-builds": "^1.2.2",
+    "bootstrap": "^3.3.6",
+    "electron-connect": "^0.3.7",
+    "electron-debug": "^0.5.2",
+    "highlight": "^0.2.4",
+    "jquery": "^2.2.2",
+    "vue": "^1.0.20"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  }
+}

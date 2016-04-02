@@ -1,0 +1,9 @@
+﻿#Visual Studio
+*.sln
+*.njsproj
+.vs/
+.ntvs_analysis.dat
+obj/
+
+#Node modules
+node_modules/
