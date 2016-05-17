@@ -1,4 +1,8 @@
-﻿'use strict';
+﻿/*
+ * Copyright (c) 2016 He Yu <kiddmagician@gmail.com>
+ * All Rights Reserved.
+*/
+'use strict';
 
 const electron = require('electron');
 
@@ -14,7 +18,7 @@ app.on('window-all-closed', function () {
 });
 
 app.on('ready', function () {
-    mainWindow = new BrowserWindow({ width: 800, height: 600 });
+    mainWindow = new BrowserWindow({ width: 800, height: 600});
 
     mainWindow.loadURL('file://' + __dirname + '/index.html');
 

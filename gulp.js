@@ -1,4 +1,8 @@
-﻿'use strict';
+﻿/*
+ * Copyright (c) 2016 He Yu <kiddmagician@gmail.com>
+ * All Rights Reserved.
+*/
+'use strict';
 
 var gulp = require('gulp');
 var electron = require('electron-connect').server.create();

@@ -4,106 +4,34 @@
     <meta charset="utf-8" />
     <title>Assmbly IDE</title>
     <link href="css/main.css" rel="stylesheet" />
-    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
 
+    <nav>
+        
+            <ul>
+                <li><button class="btn btn-default"><i class="glyphicon glyphicon-file"></i><span class="icon-desc">New</span></button></li>
+                <li><button class="btn btn-default"><i class="glyphicon glyphicon-folder-open"></i><span class="icon-desc">Open</span></button></li>
+                <li><button class="btn btn-default"><i class="glyphicon glyphicon-floppy-disk"></i><span class="icon-desc">Save</span></button></li>
+                <li><button class="btn btn-default"><i class="glyphicon glyphicon-fire"></i><span class="icon-desc">Assemble</span></button></li>
+                <li><button class="btn btn-default"><i class="glyphicon glyphicon-leaf"></i><span class="icon-desc">Deassemble</span></button></li>
+            </ul>
+        
+    </nav>
     <div class="col left-pane" id="asm-editor">
         <pre id="asm-container"></pre>
     </div>
-    <div class="col right-pane" id="asm-emulator">
-        <div class="top" id="registers">
-            <table class="table table-condensed table-bordered table-responsive">
-                <tr>
-                    <td>PC=<span id="v_pc"></span></td>
-                </tr>
-                <tr>
-                    <td>R0($zero)=<span id="v_r0"></span></td>
-                    <td>R1($at)=<span id="v_r1"></span></td>
-                    <td>R2($v0)=<span id="v_r2"></span></td>
-                    <td>R3($v1)=<span id="v_r3"></span></td>
-                </tr>
-                <tr>
-                    <td>R4($a0)=<span id="v_r4"></span></td>
-                    <td>R5($a1)=<span id="v_r5"></span></td>
-                    <td>R6($a2)=<span id="v_r6"></span></td>
-                    <td>R7($a3)=<span id="v_r7"></span></td>
-                </tr>
-                <tr>
-                    <td>R8($t0)=<span id="v_r8"></span></td>
-                    <td>R9($t1)=<span id="v_r9"></span></td>
-                    <td>R10($t2)=<span id="v_r10"></span></td>
-                    <td>R11($t3)=<span id="v_r11"></span></td>
-                </tr>
-                <tr>
-                    <td>R12($t4)=<span id="v_r12"></span></td>
-                    <td>R13($t5)=<span id="v_r13"></span></td>
-                    <td>R14($t6)=<span id="v_r14"></span></td>
-                    <td>R15($t7)=<span id="v_r15"></span></td>
-                </tr>
-                <tr>
-                    <td>R16($s0)=<span id="v_r16"></span></td>
-                    <td>R17($s1)=<span id="v_r17"></span></td>
-                    <td>R18($s2)=<span id="v_r18"></span></td>
-                    <td>R19($s3)=<span id="v_r19"></span></td>
-                </tr>
-                <tr>
-                    <td>R20($s4)=<span id="v_r20"></span></td>
-                    <td>R21($s5)=<span id="v_r21"></span></td>
-                    <td>R22($s6)=<span id="v_r22"></span></td>
-                    <td>R23($s7)=<span id="v_r23"></span></td>
-                </tr>
-                <tr>
-                    <td>R24($t8)=<span id="v_r24"></span></td>
-                    <td>R25($t9)=<span id="v_r25"></span></td>
-                    <td>R26($k0)=<span id="v_r26"></span></td>
-                    <td>R27($k1)=<span id="v_r27"></span></td>
-
-                </tr>
-                <tr>
-                    <td>R28($gp)=<span id="v_r28"></span></td>
-                    <td>R29($sp)=<span id="v_r29"></span></td>
-                    <td>R30($fp)=<span id="v_r30"></span></td>
-                    <td>R31($ra)=<span id="v_r31"></span></td>
-                </tr>
-            </table>
-        </div>
-        <span>跳转到地址:</span><input type="text" id="JP"/> <button class="btn-primary">Go</button>
-        <div class="bottom" id="emulator">
-            <table class="table table-condensed table-bordered" id="emulator_content">
-                <tr>
-                    <th>Address</th>
-                    <th>00</th>
-                    <th>01</th>
-                    <th>02</th>
-                    <th>03</th>
-                    <th>04</th>
-                    <th>05</th>
-                    <th>06</th>
-                    <th>07</th>
-                </tr>
-
-                <tr class="active">
-                    <td>00000000</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                    <td>00</td>
-                </tr>
-            </table>
-        </div>
+    <div class="col right-pane" id="bin-editor">
+        <pre id="bin-container"></pre>
     </div>
 
     <script src="node_modules/ace-builds/src-noconflict/ace.js"></script>
-    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="./js/jquery.js" onload="$ = jQuery = module.exports;"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/assemble.js"></script>
-    <script src="js/deassemble.js"></script>
 
+    <script src="./js/assemble.js"></script>
+    <script src="./js/deassemble.js"></script>
+    <script src="./js/main.js"></script>
 </body>
 </html>

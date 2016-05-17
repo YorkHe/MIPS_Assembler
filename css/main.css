@@ -7,6 +7,24 @@
     bottom: 0;
 }
 
+nav{
+    padding: 5px 5px;
+    margin: 0;
+    height: 44px;
+}
+
+nav ul{
+    list-style: none;
+    display: inline-flex;
+}
+
+nav li{
+    margin: 0 5px;
+}
+
+.icon-desc{
+    display: none;
+}
 
 .col{
     float: left;
@@ -21,7 +39,7 @@
 }
 
 .right-pane{
-
+    padding: 50px;
 }
 
 #emulator{

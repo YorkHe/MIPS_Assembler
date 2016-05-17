@@ -1,4 +1,8 @@
-﻿setMenu();
+﻿/*
+ * Copyright (c) 2016 He Yu <kiddmagician@gmail.com>
+ * All Rights Reserved.
+*/
+setMenu();
 function setMenu() {
     const remote = require('electron').remote;
     const Menu = remote.Menu;
@@ -40,7 +44,7 @@ function setMenu() {
                         window.close();
                     }
                 }
-                
+
             ]
         },
         {
@@ -212,8 +216,32 @@ function setMenu() {
 window.onload = function () {
 
     var asm_editor = ace.edit("asm-editor");
-    asm_editor.setTheme("ace/theme/monokai");
-    asm_editor.getSession().setMode("ace/mode/javascript");
-    asm_editor.setValue('');    
+    asm_editor.setTheme("ace/theme/xcode");
+    asm_editor.getSession().setMode("ace/mode/assembly_x86");
+    asm_editor.setValue('');
+
+    document.getElementById("asm-editor").style.fontSize = "18px";
+
+    asm_editor.on('change', function (e) {        
+            var content = asm_editor.getValue().split('\n');
+            assemble(content);
+    });
+    
+    var bin_editor = ace.edit("bin-editor");
+    bin_editor.setTheme("ace/theme/xcode");
+    bin_editor.getSession().setMode("ace/mode/assembly_x86");
+    bin_editor.setValue('');
+    
+    
+    
+    document.getElementById("bin-editor").style.fontSize = "18px";
+    
+    $("nav li").hover(function(){
+        console.log($(this).children(".icon-desc"));
+        $(this).children(".icon-desc").css("display:block");
+    }, function(){
+        $(this).children(".icon-desc").css("display:none");
+    })
+    
 };
 
