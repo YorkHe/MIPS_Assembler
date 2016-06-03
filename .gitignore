@@ -2,9 +2,13 @@
 *.sln
 *.njsproj
 .vs/
+.vscode/
 .ntvs_analysis.dat
 obj/
 Microsoft.NodejsTools.WebRole.dll
 
 #Node modules
 node_modules/
+
+#Webstorm
+.idea/

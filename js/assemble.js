@@ -8,8 +8,7 @@ var addrPointer = 0;
 var Markers = {};
 var parseMode = 'instruction';
 var memory = [];
-var dictionary = {
-    
+var dictionary = {    
         '#DataAddr': {
             op: "data",
             format: "imm",
@@ -597,8 +596,9 @@ function assemble(content) {
     for (var i in content) {
         var line = content[i].trim();
         if (line == '')
+        {
             continue;
-
+        }
         var instruction = line.split('//')[0].trim();
         var instruction = instruction.split(";")[0].trim();
 
@@ -633,6 +633,7 @@ function assemble(content) {
 
         if (operation) {
             var transRes = translate(operation, data);
+            
             if (transRes.type != 'M')
                 memory.push({
                     "addr": transRes.addr,
@@ -644,7 +645,8 @@ function assemble(content) {
         else
             console.error("Fatal Error");
     }
-
+    
+    return memory;  
 }
 
 function lineNumtoAddress(line_num) {
@@ -743,9 +745,9 @@ function handleInstructionJ(opcode, format, data) {
 
     res = res << 26;
 
-    res = res + data;
+    res = res + parseInt(data);
 
-    return res.toString(2);
+    return res;
 }
 
 function handleInstructionI(opcode, format, data) {

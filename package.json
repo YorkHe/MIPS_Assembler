@@ -12,6 +12,7 @@
     "vue": "^1.0.20"
   },
   "devDependencies": {
+    "electron-prebuilt": "^1.2.1",
     "gulp": "^3.9.1"
   }
 }

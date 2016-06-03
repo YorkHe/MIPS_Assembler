@@ -2,6 +2,9 @@
  * Copyright (c) 2016 He Yu <kiddmagician@gmail.com>
  * All Rights Reserved.
 */
+
+const {dialog} = require("electron").remote;
+
 setMenu();
 function setMenu() {
     const remote = require('electron').remote;
@@ -213,35 +216,225 @@ function setMenu() {
 }
 
 
+var app_status = {
+    'changed': false,
+    'first_saved': false,
+    'save_dir': "",
+};
+
+var asm_editor, bin_editor;
+
 window.onload = function () {
 
-    var asm_editor = ace.edit("asm-editor");
+
+    asm_editor = ace.edit("asm-editor");
     asm_editor.setTheme("ace/theme/xcode");
-    asm_editor.getSession().setMode("ace/mode/assembly_x86");
+    asm_editor.getSession().setMode("ace/mode/mips_assembler");
     asm_editor.setValue('');
 
     document.getElementById("asm-editor").style.fontSize = "18px";
 
-    asm_editor.on('change', function (e) {        
-            var content = asm_editor.getValue().split('\n');
-            assemble(content);
-    });
-    
-    var bin_editor = ace.edit("bin-editor");
+    bin_editor = ace.edit("bin-editor");
     bin_editor.setTheme("ace/theme/xcode");
-    bin_editor.getSession().setMode("ace/mode/assembly_x86");
+    bin_editor.getSession().setMode("ace/mode/mips_assembler");
     bin_editor.setValue('');
     
     
     
     document.getElementById("bin-editor").style.fontSize = "18px";
-    
+
+
+    asm_editor.on("change", function () {
+        app_status.changed = true;
+    });
+  
     $("nav li").hover(function(){
-        console.log($(this).children(".icon-desc"));
-        $(this).children(".icon-desc").css("display:block");
-    }, function(){
-        $(this).children(".icon-desc").css("display:none");
-    })
+        var icon = $(this).find(".icon-desc");
+        icon.css("display", "inline-flex");
+        icon.css("margin", "0 20px");        
+    }, 
+    function(){
+        $(this).find(".icon-desc").fadeOut();
+    });
+
+    $("#modal-confirm").click(
+        function () {
+            switch ($("#modal-target").val())
+            {
+                case "new":
+                    newFile();
+                    break;
+
+                case "open":
+                    openFile();
+                    break
+            }
+        }
+    );
+
+    $("#btn-new").click(function () {
+        if(app_status.changed) {
+            $(".modal-body").text("创建新文件将会导致目前未保存的文件丢失， 是否继续？");
+            $("#Modal").modal('toggle');
+            $("#modal-target").val("new");
+        }else{
+            $("#modal-target").val("new");
+            $("#modal-confirm").click();
+        }
+    });
+
+    $("#btn-open").click(function () {
+        if(app_status.changed) {
+            $(".modal-body").text("打开新文件会导致目前未保存的文件丢失， 是否继续？");
+            $("#Modal").modal('toggle');
+            $("#modal-target").val("open");
+        }else{
+            $("#modal-target").val("open");
+            $("#modal-confirm").click();
+        }
+    });
+
+    $("#btn-save").click(function () {
+        if (app_status.first_saved == false)
+        {
+            dialog.showSaveDialog(function (path) {
+                app_status.first_saved = true;
+                app_status.save_dir = path;
+                app_status.changed = false;
+                console.log(path);
+                save(app_status.save_dir, getContent());
+            });
+        }else{
+            save(app_status.save_dir, getContent());
+            app_status.changed = false;
+        }
+    });
+
+    $("#output-bin").click(function () {
+        $("#btn-asm").click();
+        $("#radix-bin").click();
+
+        var content = bin_editor.getValue().split("\n");
+
+        var sum = 0;
+
+        for (var i = 0; i < content.length; i++)
+        {
+            if (content[i] == "")
+                continue;
+            sum = sum + praseInt(content[i], 2);
+        }
+
+        console.log(sum);
+
+        dialog.showSaveDialog(function (path) {
+            save(path, sum);
+        });
+
+    });
+
+    $("#output-coe").click(function () {
+        var model = `memory_initialization_radix=16;\n
+        memory_initialization_vector=
+        `;
+
+        $("#btn-asm").click();
+
+        $("#radix-hex").click();
+
+        var content = bin_editor.getValue().split("\n");
+        content = content.join(",");
+        content = content + ";";
+
+        console.log(model+content);
+
+        dialog.showSaveDialog(function (path) {
+            save(path, model+content);
+        });
+    });
+
     
+    $("#btn-asm").click(function(){
+        var content = asm_editor.getValue().split("\n");
+        var bin_code_arr = assemble(content);
+        var bin_code = "";
+        for (var i = 0; i < bin_code_arr.length; i++)
+        {
+            bin_code += bin_code_arr[i].code + "\n";             
+        }
+        current_radix = "binary";
+        bin_editor.setValue(bin_code);
+    });
+    
+    $("#btn-dasm").click(function(){
+        var content = bin_editor.getValue().split("\n");
+        deassemble(content);
+    });
+    
+    var console_count = 0;
+    $("#btn-console").click(function(){        
+       console_count = 1 - console_count;       
+       if (console_count == 1)
+       {
+           showConsole();
+       }else{
+           hideConsole();
+       }    
+    });
+
+    var current_radix = 'binary';
+    
+    $("#radix-bin").click(function(){
+        if (current_radix == "hex") {
+            var content = bin_editor.getValue().split("\n");
+            bin_editor.setValue(convertBin(content));
+            current_radix = 'binary';
+        }
+    });
+    
+    $("#radix-hex").click(function(){
+        if (current_radix == 'binary') {
+            var content = bin_editor.getValue().split("\n");
+            bin_editor.setValue(convertHex(content));
+            current_radix = 'hex';
+        }
+    });  
 };
+
+function newFile()
+{
+    app_status.changed = false;
+    app_status.first_saved = false;
+    app_status.save_dir = "";
+
+    bin_editor.setValue("");
+    asm_editor.setValue("");
+}
+
+function openFile()
+{
+
+    app_status.changed = false;
+    app_status.first_saved = true;
+
+    dialog.showOpenDialog(function (path) {
+        open(path[0], function (err, data) {
+            if (err)
+            {
+                showConsole();
+                addLine("Open Error:" + err);
+            }else{
+                asm_editor.setValue(data);
+                app_status.changed = false;
+                app_status.first_saved = true;
+                app_status.save_dir = path[0];
+            }
+        });
+    });
+}
+
+function getContent()
+{
+    return asm_editor.getValue();
+}
 

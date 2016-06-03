@@ -7,21 +7,67 @@
     <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
-
-    <nav>
-        
+    <nav>        
             <ul>
-                <li><button class="btn btn-default"><i class="glyphicon glyphicon-file"></i><span class="icon-desc">New</span></button></li>
-                <li><button class="btn btn-default"><i class="glyphicon glyphicon-folder-open"></i><span class="icon-desc">Open</span></button></li>
-                <li><button class="btn btn-default"><i class="glyphicon glyphicon-floppy-disk"></i><span class="icon-desc">Save</span></button></li>
-                <li><button class="btn btn-default"><i class="glyphicon glyphicon-fire"></i><span class="icon-desc">Assemble</span></button></li>
-                <li><button class="btn btn-default"><i class="glyphicon glyphicon-leaf"></i><span class="icon-desc">Deassemble</span></button></li>
-            </ul>
-        
+                <li><button id="btn-new" class="btn btn-default"><i class="glyphicon glyphicon-file"></i><span class="icon-desc">New</span></button></li>
+                <li><button id="btn-open" class="btn btn-default"><i class="glyphicon glyphicon-folder-open"></i><span class="icon-desc">Open</span></button></li>
+                <li><button id="btn-save" class="btn btn-default"><i class="glyphicon glyphicon-share"></i><span class="icon-desc">Save</span></button></li>
+                <li>
+                    <div class="btn-group">
+                        <button id="btn-output" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="glyphicon glyphicon-floppy-disk"></i><span class="icon-desc">Output</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="output-coe">.coe</a></li>
+                            <li><a href="#" id="output-bin">.bin</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li><button id="btn-asm" class="btn btn-default"><i class="glyphicon glyphicon-fire"></i><span class="icon-desc">Assemble</span></button></li>
+                <li><button id="btn-dasm" class="btn btn-default"><i class="glyphicon glyphicon-leaf"></i><span class="icon-desc">Deassemble</span></button></li>
+                <li><button id="btn-console" class="btn btn-default"><i class="glyphicon glyphicon-console"></i><span class="icon-desc">Console</span></button></li>
+                <li class="right">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Radix <span class="caret"></span>                            
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="radix-bin">Binary</a></li>
+                            <li><a href="#" id="radix-hex">Hex</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>            
     </nav>
-    <div class="col left-pane" id="asm-editor">
-        <pre id="asm-container"></pre>
+
+    <div class="modal fade" id="Modal" tabindex="-1" role="dialog" aria-labelledby="ModalLable">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <input id="modal-target" type="text" style="display: none">
+                <div class="modal-title">
+
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                    <button id="modal-confirm" type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                    <button id="modal-decline" type="button" class="btn btn-primary" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="col left-pane" >
+        <div id="asm-editor">
+            <pre id="asm-container"></pre>        
+        </div>        
+        
+        <div id="console">    
+            <ul id="console_content">
+            </ul>                    
+        </div>
+    </div>
+    
     <div class="col right-pane" id="bin-editor">
         <pre id="bin-container"></pre>
     </div>
@@ -29,7 +75,9 @@
     <script src="node_modules/ace-builds/src-noconflict/ace.js"></script>
     <script src="./js/jquery.js" onload="$ = jQuery = module.exports;"></script>
     <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-
+    <script src="./js/fileIO.js"></script>
+    <script src="./js/console.js"></script>
+    <script src="./js/radixconvert.js"></script>
     <script src="./js/assemble.js"></script>
     <script src="./js/deassemble.js"></script>
     <script src="./js/main.js"></script>

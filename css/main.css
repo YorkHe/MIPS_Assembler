@@ -22,7 +22,8 @@ nav li{
     margin: 0 5px;
 }
 
-.icon-desc{
+
+.icon-desc{    
     display: none;
 }
 
@@ -30,6 +31,10 @@ nav li{
     float: left;
     -webkit-box-sizing: border-box;
     width: 50%;
+    height: 100%;
+}
+
+#asm-editor{
     height: 100%;
 }
 
@@ -44,4 +49,17 @@ nav li{
 
 #emulator{
     overflow-y:scroll;
+}
+
+#console{
+    border-top: 4px solid #e8e8e8; 
+}
+
+#console_content{
+    list-style: none;
+    padding-left: 43px;
+}
+
+.right{
+    float: right;
 }
