@@ -358,11 +358,22 @@ window.onload = function () {
         var content = asm_editor.getValue().split("\n");
         var bin_code_arr = assemble(content);
         var bin_code = "";
+
+        console.log(content);
+        console.log(bin_code);
+        console.log(bin_code_arr);
+        var cur_line = 0;
         for (var i = 0; i < bin_code_arr.length; i++)
         {
-            bin_code += bin_code_arr[i].code + "\n";             
+
+            console.log(parseInt(bin_code_arr[i].line) - cur_line-1);
+            bin_code += "\n".repeat(parseInt(bin_code_arr[i].line)-cur_line);
+            cur_line = parseInt(bin_code_arr[i].line);
+
+            bin_code += bin_code_arr[i].instruction.code;
         }
         current_radix = "binary";
+        bin_editor.setValue("");
         bin_editor.setValue(bin_code);
     });
     

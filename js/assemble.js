@@ -4,11 +4,14 @@
  */
 
 var baseAddr = 0;
+var dataAddr = 0;
+var curAddr = 0;
 var addrPointer = 0;
-var Markers = {};
+var labelTable = {};
 var parseMode = 'instruction';
 var memory = [];
-var dictionary = {    
+var dictionary = {
+
         '#DataAddr': {
             op: "data",
             format: "imm",
@@ -17,6 +20,16 @@ var dictionary = {
         '#baseAddr': {
             op: "base",
             format: "imm",
+            type: 'M'
+        },
+        '.text':{
+            op: "base",
+            format: 'imm',
+            type: 'M'
+        },
+        '.data':{
+            op: "data",
+            format: 'imm',
             type: 'M'
         },
         'db': {
@@ -66,18 +79,6 @@ var dictionary = {
             op: 0xc,
             format: "rt/rs/imm",
             type: "I"
-        },
-        'clo': {
-            op: 0x1c,
-            format: "rd/rs",
-            func: 0x21,
-            type: "R"
-        },
-        'clz': {
-            op: 0x1c,
-            format: "rd/rs",
-            func: 0x20,
-            type: "R"
         },
         'div': {
             op: 0x0,
@@ -236,20 +237,6 @@ var dictionary = {
             format: 'rt/rs/imm',
             type: "I"
         },
-        'bclf': {
-            op: 0x11,
-            format: 'cc/label',
-            code: 0x8,
-            condition: 0,
-            type: "I"
-        },
-        'bclt': {
-            op: 0x11,
-            format: 'cc/label',
-            code: 0x8,
-            condition: 1,
-            type: "I"
-        },
         'beq': {
             op: 0x4,
             format: 'rs/rt/label',
@@ -298,12 +285,12 @@ var dictionary = {
         },
         'j': {
             op: 0x2,
-            format: 'imm',
+            format: 'label',
             type: "J"
         },
         'jal': {
             op: 0x3,
-            format: 'imm',
+            format: 'label',
             type: 'J'
         },
         'jalr': {
@@ -312,7 +299,7 @@ var dictionary = {
             code1: 0x0,
             code2: 0x0,
             code3: 0x9,
-            type: 'J'
+            type: 'R'
         },
         'jr': {
             op: 0x0,
@@ -503,32 +490,6 @@ var dictionary = {
             func: 0x13,
             type: "R"
         },
-        'mfc0': {
-            op: 0x10,
-            format: 'rt/rd',            
-            func: 0x0,
-            type: "R"
-        },
-        'mfc1': {
-            op: 0x11,
-            format: 'rt/fs',            
-            func: 0x0,
-            type: "R"
-        },
-        'mtc0': {
-            op: 0x10,
-            format: 'rd/rt',            
-            code1: 0x4,
-            func: 0x0,
-            type: "R"
-        },
-        'mtc1': {
-            op: 0x11,
-            format: 'rd/fs',            
-            code1: 0x4,
-            func: 0x0,
-            type: "R"
-        },
         'movn': {
             op: 0x0,
             format: 'rd/rs/rt',                        
@@ -582,6 +543,25 @@ var dictionary = {
     };
 
 
+function labelToAddress(label)
+{
+    if (labelTable[label[0]] != undefined)
+    {
+        return labelTable[label[0]];
+    }else{
+        return -1;
+    }
+}
+
+function labelToOffset(label)
+{
+    if (labelTable[label[0]] != undefined)
+    {
+        return labelTable[label[0]] - curAddr;
+    }else{
+        return -1;
+    }
+}
 
 function getStrategy(op) {    
     try {
@@ -590,71 +570,109 @@ function getStrategy(op) {
         throw new Error("Illegal instruction");
     }
 }
-function assemble(content) {
-    //console.log(line_start, line_end, content);
+
+function assemble(content)
+{
     memory = [];
-    for (var i in content) {
-        var line = content[i].trim();
-        if (line == '')
+    curAddr = 0;
+    var i, line;
+
+    for (i in content)
+    {
+        line = content[i].trim();
+
+        if (line.match(":"))
         {
+            line = line.split(":");
+            console.log(line);
+            if (line.length == 2)
+            {
+                var label = line[0];
+                console.log(label);
+                labelTable[label] = curAddr;
+            }else{
+
+            }
+
             continue;
         }
-        var instruction = line.split('//')[0].trim();
-        var instruction = instruction.split(";")[0].trim();
 
-        if (instruction == '')
-            continue;
+        var token = tokenize(line);
+        if (!token) continue;
 
-        instruction = instruction.split(':');
-
-        if (instruction.length > 2) {
-            console.error("Syntax Error at " + i);
-            continue;
-        } else if (instruction.length == 2) { 
-            markPosition(i, instruction[0]);
-
-            instruction = instruction[1];
-        } else {
-            instruction = instruction[0];
+        if (token.operation.type == "M")
+        {
+            if (token.operation.op == "base")
+            {
+                if (token.data[0].match(/x/))
+                {
+                    curAddr = parseInt(token.data, 16);
+                }else{
+                    curAddr = parseInt(token.data);
+                }
+            }
+        }else{
+            console.log("pusAddr" + curAddr);
+            memory.push({
+                addr: curAddr,
+                instruction: translate(token.operation, token.data),
+                asmData: token.data,
+                asm: token.operation,
+                line: i
+            });
+            curAddr += 4;
         }
-
-        var instruction_array = instruction.split(/\s/);
-
-        var op = instruction_array[0].trim();
-        var data = instruction_array.slice(1, instruction_array.length).join('').trim();
-        data = data.split(/,|,\s/);
-
-
-        console.log(op, '|', data);
-
-        var operation = getStrategy(op);
-
-        console.log(operation);
-
-        if (operation) {
-            var transRes = translate(operation, data);
-            
-            if (transRes.type != 'M')
-                memory.push({
-                    "addr": transRes.addr,
-                    "code": transRes.code.toString(2)
-                });
-            
-            console.log(transRes);
-        }
-        else
-            console.error("Fatal Error");
     }
-    
-    return memory;  
+    for (var i in memory)
+    {
+        if (memory[i].asm.type == "J")
+        {
+            var transJ = translate(memory[i].asm, memory[i].asmData);
+            if (transJ)
+            {
+                memory[i].instruction = transJ;
+            }
+        }
+    }
+    return memory;
 }
 
-function lineNumtoAddress(line_num) {
-    return baseAddr + line_num;
+function tokenize(line) {
+    if (line == '') {
+        return false;
+    }
+    var instruction = line.split('//')[0].trim();
+    instruction = instruction.split(";")[0].trim();
+
+    if (instruction == '')
+        return false;
+
+    var instruction_array = instruction.split(/\s/);
+
+    var op = instruction_array[0].trim();
+    var data = instruction_array.slice(1, instruction_array.length).join('').trim();
+    data = data.split(/,|,\s/);
+
+
+    console.log(op, '|', data);
+
+    var operation = getStrategy(op);
+
+    return {
+        "op": op,
+        "marker": true,
+        "data": data,
+        "operation": operation
+    };
 }
 
-function AddresstolineNum(address) {
-    return address - baseAddr;
+function leftpad(string, length)
+{
+    while (string.length < length)
+    {
+        string = '0' + string;
+    }
+    return string;
 }
 
 function translateRegister(reg)
@@ -704,12 +722,10 @@ function translateRegister(reg)
 }
 
 function markPosition(line_num, mark) {
-    Markers[mark] = lineNumtoAddress(line_num);
+
 }
 
 function translate(operation, data) {
-    var opcode = operation.op;
-    var format = operation.format;
     var type = operation.type;
     var res = {};
 
@@ -726,13 +742,8 @@ function translate(operation, data) {
 
 
     try {
-        res.code = handleInstruction[type](opcode, format, data);
-        if (res.type != 'M' && res.type != 'D')
-        {
-            res.addr = baseAddr;
-            baseAddr += 4;
-        }
-        console.log(res);        
+        res.code = handleInstruction[type](operation, data);
+        console.log(res);
     } catch (e) {
         console.error(e);
     }
@@ -740,24 +751,33 @@ function translate(operation, data) {
     return res;
 }
 
-function handleInstructionJ(opcode, format, data) {
-    var res = opcode;
+function handleInstructionJ(operation, data) {
 
-    res = res << 26;
+    var opcode = operation.op;
 
-    res = res + parseInt(data);
 
-    return res;
+    var res = leftpad(opcode.toString(2), 6);
+    console.log(labelToAddress(data));
+    if (labelToAddress(data) != -1) {
+        res = res + leftpad(labelToAddress(data).toString(2).slice(0, -2), 26);
+        return res;
+    }else{
+        return false;
+    }
 }
 
-function handleInstructionI(opcode, format, data) {
+function handleInstructionI(operation, data) {
 
-    var res = opcode;
+    var opcode = operation.op;
+    var format = operation.format;
+    var func = operation.func;
+
+    var res = leftpad(opcode.toString(2), 6);
+
     console.log(opcode, format, data);
 
-    res = res << 5;
 
-    var rt, rs, imm;
+    var rt, rs, imm, label;
     try {
         switch (format) {
             case "rt/rs/imm":
@@ -765,54 +785,59 @@ function handleInstructionI(opcode, format, data) {
                 rs = data[1];
                 imm = data[2];
 
-                res = res + translateRegister(rs);
-                res = res << 5;
-                res = res + translateRegister(rt);
-                res = res << 16;
-                res = res + parseInt(imm);
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(parseInt(imm).toString(2), 16);
+
                 console.log(res);
                 break;
             case "rs/imm":
                 rs = data[0];
                 imm = data[1];
-                res = res + translateRegister(rs);
-                res = res << 21;
-                res = res + parseInt(imm);
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(parseInt(imm).toString(2), 21);
+
                 break;
             case "rt/imm/rs":
-                rt = data[0];                
+                rt = data[0];
                 var regres = /(.+)\((.+)\)/.exec(data[1]);
-                console.log(regres);                
                 imm = regres[1];
                 rs = regres[2];
-                console.log(imm, rs);
-                console.log(res);
 
-                res = res + translateRegister(rs);
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(parseInt(imm).toString(2), 16);
 
-                console.log(res);
-
-                res = res << 5;
-                res = res + translateRegister(rt);
-
-                    
-                console.log(res);
-                res = res << 16;
-                console.log(parseInt(imm));
-                console.log(res);
-                res = res + parseInt(imm);
-
-                console.log(res);
                 break;
             case "rs/label":
+
+                rs = data[0];
+                label = data[1];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(func.toString(2), 5);
+                res = res + leftpad(labelToOffset(label).toString(2).slice(0,-2), 16);
+
                 break;
             case "rs/rt/label":
+                rs = data[0];
+                rt = data[1];
+                label = data[2];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(labelToOffset(label).toString(2).slice(0,-2), 16);
+
                 break;
             case "rt/imm":
-                break;
-            case "cc/label":
-                break;
+                rt = data[0];
+                imm = data[1];
 
+                res = res + leftpad(translateRegister(rt).toString(2), 10);
+                res = res + leftpad(parseInt(imm).toString(2), 16);
+
+                break;
         }
     } catch (e)
     {
@@ -824,39 +849,71 @@ function handleInstructionI(opcode, format, data) {
     return res;
 }
 
-function handleInstructionR(opcode, format, data) {
+function handleInstructionR(operation, data) {
 
-    var res = opcode;
+    var opcode = operation.op;
+    var func = operation.func;
+    var format = operation.format;
 
-    res = res << 5;
 
-    var rt, rs, rd, func;
+    var res = leftpad(opcode.toString(2), 6);
+
+    console.log(res);
+
+    var rt, rs, rd, cc, sa;
 
     try {
         switch (format) {
             case "rd/rs/rt":
+                rd = data[0];
+                rs = data[1];
+                rt = data[2];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(translateRegister(rd).toString(2), 5);
+                res = res + leftpad(func.toString(2), 11);
                 break;
             case "rs/rt":
+                rs = data[0];
+                rt = data[1];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(func.toString(2), 16);
                 break;
             case "rd":
+                rd = data[0];
+
+                res = res + leftpad(translateRegister(rd).toString(2), 15);
+                res = res + leftpad(func.toString(2), 11);
                 break;
             case "rs":
-                break;
-            case "rt/rd":
-                break;
-            case "rt/fs":
-                break;
-            case "rd/rt":
-                break;
-            case "rd/fs":
-                break;
-            case "rd/rs/cc":
-                break;
-            case "rd/rs":
+                rs = data[0];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(func.toString(2), 21);
+
                 break;
             case "rd/rt/shamt":
+                rd = data[0];
+                rt = data[1];
+                sa = data[2];
+
+                res = res + leftpad(translateRegister(rt).toString(2), 10);
+                res = res + leftpad(translateRegister(rd).toString(2), 5);
+                res = res + leftpad(translateRegister(sa).toString(2), 5);
+                res = res + leftpad(func.toString(2), 6);
                 break;
             case "rd/rt/rs":
+                rd = data[0];
+                rt = data[1];
+                rs = data[2];
+
+                res = res + leftpad(translateRegister(rs).toString(2), 5);
+                res = res + leftpad(translateRegister(rt).toString(2), 5);
+                res = res + leftpad(translateRegister(rd).toString(2), 5);
+                res = res + leftpad(func.toString(2), 11);
                 break;           
         }
     } catch (e)
@@ -879,6 +936,7 @@ function handleInstructionM(opcode, format, data) {
 
     else if (opcode == 'base') {
         baseAddr = parseInt(data, 16);
+        parseMode = 'instruction';
         addrPointer = baseAddr
     }
     else
